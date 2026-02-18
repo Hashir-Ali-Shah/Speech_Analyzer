@@ -1,10 +1,3 @@
-"""
-SpeakBetter Local — Desktop Shortcut Creator
-Generates the VBS launcher with the correct Python path baked in,
-then creates a desktop shortcut pointing to it.
-Usage: python create_shortcut.py
-"""
-
 import os
 import sys
 import subprocess
@@ -12,13 +5,10 @@ import tempfile
 
 
 def create_shortcut():
-    """Create a VBS launcher and a Windows desktop shortcut."""
-
     project_root = os.path.dirname(os.path.abspath(__file__))
-    python_exe = sys.executable  # Full path to the Python that's running right now
+    python_exe = sys.executable
 
-    # ── Step 1: Generate SpeakBetter.vbs with the full Python path ──────
-    vbs_path = os.path.join(project_root, "SpeakBetter.vbs")
+    vbs_path = os.path.join(project_root, "SpeechLab.vbs")
     vbs_content = (
         'Set WshShell = CreateObject("WScript.Shell")\n'
         f'WshShell.CurrentDirectory = "{project_root}"\n'
@@ -31,10 +21,9 @@ def create_shortcut():
     print(f"[OK] VBS launcher created: {vbs_path}")
     print(f"[OK] Python path embedded: {python_exe}")
 
-    # ── Step 2: Create the desktop shortcut ─────────────────────────────
     try:
         desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
-        shortcut_path = os.path.join(desktop, "SpeakBetter Local.lnk")
+        shortcut_path = os.path.join(desktop, "SpeechLab.lnk")
 
         icon_path = os.path.join(project_root, "assets", "icon.ico")
 
@@ -44,13 +33,12 @@ def create_shortcut():
             f'$Shortcut.TargetPath = "wscript.exe"\n'
             f'$Shortcut.Arguments = \'"{vbs_path}"\'\n'
             f'$Shortcut.WorkingDirectory = "{project_root}"\n'
-            '$Shortcut.Description = "SpeakBetter Local - Offline Speech Analysis"\n'
+            '$Shortcut.Description = "SpeechLab - Offline Speech Analysis"\n'
             f'$Shortcut.IconLocation = "{icon_path}"\n'
             '$Shortcut.Save()\n'
         )
 
-
-        tmp_ps1 = os.path.join(tempfile.gettempdir(), "create_speakbetter_shortcut.ps1")
+        tmp_ps1 = os.path.join(tempfile.gettempdir(), "create_speechlab_shortcut.ps1")
         with open(tmp_ps1, "w", encoding="utf-8") as f:
             f.write(ps_content)
 
@@ -68,8 +56,8 @@ def create_shortcut():
         if os.path.exists(shortcut_path):
             print(f"[SUCCESS] Desktop shortcut created: {shortcut_path}")
             print("\nYou can now launch the app by:")
-            print("  1. Double-clicking 'SpeakBetter Local' on your desktop")
-            print(f"  2. Double-clicking SpeakBetter.vbs in {project_root}")
+            print("  1. Double-clicking 'SpeechLab' on your desktop")
+            print(f"  2. Double-clicking SpeechLab.vbs in {project_root}")
         else:
             print("[WARNING] Shortcut file was not found after creation.")
             print(f"You can still launch by double-clicking: {vbs_path}")
