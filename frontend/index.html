@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpeakBetter Local — Offline Speech Analysis</title>
+    <meta name="description" content="Practice speaking, get instant fluency analysis. Fully offline." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <!-- ─── App Shell ─────────────────────────────────────── -->
+    <div class="app-shell">
+
+      <!-- ─── Sidebar ─────────────────────────────────────── -->
+      <nav class="sidebar">
+        <div class="sidebar-brand">
+          <svg class="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
+          <div class="brand-text">
+            <span class="brand-name">SpeakBetter</span>
+            <span class="brand-tag">Offline</span>
+          </div>
+        </div>
+
+        <div class="sidebar-nav">
+          <button class="nav-item active" data-view="record">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            </svg>
+            <span>Record</span>
+          </button>
+          <button class="nav-item" data-view="results">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            <span>Results</span>
+          </button>
+          <button class="nav-item" data-view="coach">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>AI Coach</span>
+          </button>
+          <button class="nav-item" data-view="history">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>History</span>
+          </button>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="model-selector">
+            <label class="model-label" for="modelSelect">STT Model</label>
+            <select id="modelSelect" class="model-select">
+              <option value="base">Base — Fast</option>
+              <option value="medium">Medium — Accurate</option>
+            </select>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ─── Main Content Area ───────────────────────────── -->
+      <main class="main-area">
+
+        <!-- ═══ VIEW: Record ═══════════════════════════════ -->
+        <section id="viewRecord" class="view active">
+          <div class="view-header">
+            <h1 class="view-title">Record Speech</h1>
+          </div>
+          <div class="view-body">
+            <!-- Topic Card -->
+            <div class="card topic-card">
+              <div class="card-header">
+                <h2 class="card-title">Speaking Topic</h2>
+                <button id="generateTopicBtn" class="btn btn-primary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                  </svg>
+                  Generate
+                </button>
+              </div>
+              <div id="topicDisplay" class="topic-display">
+                <p class="topic-placeholder">Click "Generate" to get a speaking prompt</p>
+              </div>
+            </div>
+
+            <!-- Recorder Card -->
+            <div class="card recorder-card">
+              <div class="recorder-container">
+                <div class="timer-display">
+                  <span id="timerText" class="timer-text">00:00</span>
+                  <span id="timerLabel" class="timer-label">Ready to record</span>
+                </div>
+
+                <div id="visualizerContainer" class="visualizer-container hidden">
+                  <canvas id="visualizerCanvas" class="visualizer-canvas" width="500" height="56"></canvas>
+                  <span id="visualizerLabel" class="visualizer-label">Input Level</span>
+                </div>
+
+                <div class="recorder-controls">
+                  <button id="recordBtn" class="record-btn" title="Start Recording">
+                    <span class="record-btn-inner"></span>
+                  </button>
+                  <button id="stopBtn" class="stop-btn hidden" title="Stop Recording">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div id="playbackContainer" class="playback-container hidden">
+                  <audio id="audioPlayback" controls></audio>
+                </div>
+
+                <button id="analyzeBtn" class="btn btn-accent btn-lg hidden">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                  </svg>
+                  Analyze Speech
+                </button>
+
+                <div id="analysisProgress" class="analysis-progress hidden">
+                  <div class="progress-spinner"></div>
+                  <span id="analysisProgressText" class="progress-text">Transcribing speech...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ VIEW: Results ══════════════════════════════ -->
+        <section id="viewResults" class="view">
+          <div class="view-header">
+            <h1 class="view-title">Analysis Results</h1>
+          </div>
+          <div class="view-body" id="resultsBody">
+            <div id="noResults" class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              <p>No analysis yet. Record and analyze speech first.</p>
+            </div>
+
+            <div id="resultsContent" class="results-content hidden">
+              <!-- Transcript -->
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Transcript</h2>
+                  <button id="copyTranscriptBtn" class="btn btn-ghost btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    <span id="copyBtnText">Copy</span>
+                  </button>
+                </div>
+                <div id="transcriptContent" class="transcript-content"></div>
+                <div class="transcript-legend">
+                  <span class="legend-item"><span class="legend-dot legend-filler"></span> Filler</span>
+                  <span class="legend-item"><span class="legend-dot legend-repeat"></span> Repetition</span>
+                </div>
+              </div>
+
+              <!-- Metrics -->
+              <div class="card">
+                <h2 class="card-title" style="margin-bottom:16px">Performance Metrics</h2>
+
+                <div class="metric-group">
+                  <div class="metric-group-label">Speed & Volume</div>
+                  <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-value" id="metricWPM">—</div><div class="metric-label">Words / Min</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricWordCount">—</div><div class="metric-label">Total Words</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricDuration">—</div><div class="metric-label">Duration (s)</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricArticulationRate">—</div><div class="metric-label">Articulation WPM</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricSpeakingRatio">—</div><div class="metric-label">Speaking %</div></div>
+                  </div>
+                </div>
+
+                <div class="metric-group">
+                  <div class="metric-group-label">Fillers & Repetitions</div>
+                  <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-value" id="metricFillerCount">—</div><div class="metric-label">Filler Words</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricFillerDensity">—</div><div class="metric-label">Fillers / 100w</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricTopFiller">—</div><div class="metric-label">Top Filler</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricRepetitions">—</div><div class="metric-label">Repetitions</div></div>
+                  </div>
+                </div>
+
+                <div class="metric-group">
+                  <div class="metric-group-label">Pauses & Structure</div>
+                  <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-value" id="metricLongestPause">—</div><div class="metric-label">Longest Pause (s)</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricPauseCount">—</div><div class="metric-label">Pauses &gt; 1s</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricSentenceCount">—</div><div class="metric-label">Sentences</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricAvgSentence">—</div><div class="metric-label">Avg Sentence Len</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricLongestSentence">—</div><div class="metric-label">Longest Sentence</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricShortestSentence">—</div><div class="metric-label">Shortest Sentence</div></div>
+                  </div>
+                </div>
+
+                <div class="metric-group">
+                  <div class="metric-group-label">Vocabulary</div>
+                  <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-value" id="metricVocabDiversity">—</div><div class="metric-label">Diversity</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricUniqueWords">—</div><div class="metric-label">Unique Words</div></div>
+                    <div class="metric-card"><div class="metric-value" id="metricAvgWordLength">—</div><div class="metric-label">Avg Word Len</div></div>
+                  </div>
+                </div>
+
+                <div id="fillerBreakdown" class="filler-breakdown hidden">
+                  <div class="metric-group-label">Filler Breakdown</div>
+                  <div id="fillerBreakdownContent" class="breakdown-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ VIEW: AI Coach ═════════════════════════════ -->
+        <section id="viewCoach" class="view">
+          <div class="view-header">
+            <h1 class="view-title">AI Coach</h1>
+          </div>
+          <div class="view-body">
+            <div id="noCoachData" class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <p>Analyze a recording first, then copy the context to paste into ChatGPT or Claude.</p>
+            </div>
+
+            <div id="coachContent" class="coach-content hidden">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title">Full Analysis Context</h2>
+                  <button id="copyLLMBtn" class="btn btn-primary btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    <span id="copyLLMText">Copy to Clipboard</span>
+                  </button>
+                </div>
+                <p class="coach-description">
+                  This contains your full transcript and all metrics formatted for AI analysis.
+                  Copy and paste into ChatGPT, Claude, or any AI for personalized improvement advice.
+                </p>
+                <textarea id="llmContextArea" class="llm-textarea" readonly rows="20"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ VIEW: History ══════════════════════════════ -->
+        <section id="viewHistory" class="view">
+          <div class="view-header">
+            <h1 class="view-title">Session History</h1>
+            <button id="clearHistoryBtn" class="btn btn-ghost btn-sm hidden">Clear All</button>
+          </div>
+          <div class="view-body">
+            <div id="historyList" class="history-list">
+              <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <p>No sessions yet. Record and analyze your speech to see history.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+
+
+    <script src="/js/app.js"></script>
+  </body>
+</html>
