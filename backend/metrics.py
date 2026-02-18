@@ -1,9 +1,3 @@
-"""
-SpeakBetter Local — Metrics Module
-Deterministic, pure-Python computation of speaking metrics.
-No external dependencies beyond stdlib.
-"""
-
 import re
 from collections import Counter
 from typing import Optional
@@ -17,24 +11,16 @@ from backend.config import (
 )
 
 
-
 def _tokenize(text: str) -> list[str]:
-    """Split text into lowercase words, stripping punctuation."""
     return re.findall(r"[a-zA-Z']+", text.lower())
 
 
 def _split_sentences(text: str) -> list[str]:
-    """Split text into sentences using punctuation delimiters."""
     sentences = re.split(r'[.!?]+', text)
     return [s.strip() for s in sentences if s.strip()]
 
 
-
 def compute_core_metrics(transcript: str, duration_seconds: float) -> dict:
-    """
-    Compute basic speech metrics.
-    Returns: word_count, words_per_minute, avg/longest/shortest sentence length.
-    """
     words = _tokenize(transcript)
     word_count = len(words)
 
@@ -56,12 +42,7 @@ def compute_core_metrics(transcript: str, duration_seconds: float) -> dict:
     }
 
 
-
 def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = None) -> dict:
-    """
-    Detect and count filler words/phrases in the transcript.
-    Returns: filler_count, filler_density, most_common_filler, filler_details, filler_timeline.
-    """
     text_lower = transcript.lower()
     words = _tokenize(transcript)
     word_count = len(words)
@@ -109,10 +90,6 @@ def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = No
 
 
 def compute_repetition_metrics(transcript: str) -> dict:
-    """
-    Detect consecutive repeated words and repeated short phrases.
-    Returns: repetition_count, repeated_words, repeated_phrases.
-    """
     words = _tokenize(transcript)
     repeated_words = []
     repeated_phrases = []
@@ -151,12 +128,7 @@ def compute_repetition_metrics(transcript: str) -> dict:
     }
 
 
-
 def compute_pause_metrics(word_timestamps: Optional[list] = None) -> dict:
-    """
-    Analyze pauses between words using timestamp data.
-    Returns: longest_pause_seconds, avg_pause_duration, pause_count_over_1s, pauses.
-    """
     if not word_timestamps or len(word_timestamps) < 2:
         return {
             "longest_pause_seconds": 0,
@@ -193,10 +165,6 @@ def compute_pause_metrics(word_timestamps: Optional[list] = None) -> dict:
 
 
 def compute_vocabulary_metrics(transcript: str) -> dict:
-    """
-    Compute vocabulary richness metrics.
-    Returns: vocabulary_diversity (unique/total), avg_word_length, sentence_count.
-    """
     words = _tokenize(transcript)
     word_count = len(words)
 
@@ -230,10 +198,6 @@ def compute_pacing_metrics(
     word_count: int,
     word_timestamps: list | None = None,
 ) -> dict:
-    """
-    Compute pacing metrics that separate speaking from silence.
-    Returns: articulation_rate (WPM of actual speaking), speaking_time_ratio.
-    """
     if not word_timestamps or len(word_timestamps) < 2 or duration_seconds <= 0:
         return {
             "articulation_rate": 0,
@@ -259,10 +223,6 @@ def compute_pacing_metrics(
 
 
 def compute_all_metrics(transcript: str, duration_seconds: float, word_timestamps: list | None = None) -> dict:
-    """
-    Compute all metrics and return a single merged dictionary.
-    This is the main entry point used by the API.
-    """
     core = compute_core_metrics(transcript, duration_seconds)
     fillers = compute_filler_metrics(transcript, word_timestamps)
     repetitions = compute_repetition_metrics(transcript)
@@ -278,4 +238,3 @@ def compute_all_metrics(transcript: str, duration_seconds: float, word_timestamp
         **vocabulary,
         **pacing,
     }
-

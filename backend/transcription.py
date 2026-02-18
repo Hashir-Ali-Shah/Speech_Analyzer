@@ -1,9 +1,3 @@
-"""
-SpeakBetter Local — Transcription Module
-Wraps faster-whisper with lazy-loaded models and word-level timestamps.
-Supports multiple model sizes with on-demand loading.
-"""
-
 import tempfile
 import os
 from dotenv import load_dotenv
@@ -15,7 +9,6 @@ load_dotenv()
 
 
 class TranscriptionService:
-    """Manages multiple whisper models with lazy loading."""
 
     _instance: Optional["TranscriptionService"] = None
     _models: dict = {}
@@ -27,7 +20,6 @@ class TranscriptionService:
         return cls._instance
 
     def _ensure_model(self, model_size: str):
-        """Lazy-load a specific model on first use."""
         if model_size not in AVAILABLE_MODELS:
             raise ValueError(
                 f"Unknown model: {model_size}. Available: {AVAILABLE_MODELS}"
@@ -44,25 +36,9 @@ class TranscriptionService:
             print(f"[TranscriptionService] Model '{model_size}' loaded successfully.")
 
     def get_loaded_models(self) -> list[str]:
-        """Return list of currently loaded model names."""
         return list(self._models.keys())
 
     def transcribe(self, audio_bytes: bytes, model_size: str = DEFAULT_MODEL) -> dict:
-        """
-        Transcribe audio bytes using the specified model.
-
-        Args:
-            audio_bytes: Raw audio file bytes (any format FFmpeg supports).
-            model_size: Which whisper model to use (e.g. "base", "medium").
-
-        Returns:
-            {
-                "transcript": str,
-                "duration_seconds": float,
-                "word_timestamps": [{"word": str, "start": float, "end": float}, ...],
-                "model_used": str,
-            }
-        """
         self._ensure_model(model_size)
         model = self._models[model_size]
 
@@ -109,6 +85,16 @@ class TranscriptionService:
 
 
 def transcribe_audio(audio_bytes: bytes, model_size: str = DEFAULT_MODEL) -> dict:
-    """Transcribe audio bytes using the singleton TranscriptionService."""
     service = TranscriptionService()
     return service.transcribe(audio_bytes, model_size)
+
+
+def transcribe_audio_chunk(chunk: dict) -> dict:
+    service = TranscriptionService()
+    result = service.transcribe(chunk["audio_bytes"])
+
+    return {
+        "result": result,
+        "start_time": chunk["start_time"],
+        "end_time": chunk["end_time"],
+    }

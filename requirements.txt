@@ -4,3 +4,5 @@ faster-whisper>=1.0.0
 python-multipart>=0.0.6
 pywebview>=4.4.0
 python-dotenv>=1.0.0
+pydub>=0.25.1
+

@@ -1,13 +1,9 @@
-"""
-SpeakBetter Local — Topic Generator
-500+ predefined speaking topics across 5 categories.
-"""
+
 
 import random
 
 TOPICS = {
     "technical": [
-        # ── Databases & Storage ──
         "Explain how a database index improves query performance.",
         "Describe the difference between REST and GraphQL APIs.",
         "What is the difference between SQL and NoSQL databases?",
