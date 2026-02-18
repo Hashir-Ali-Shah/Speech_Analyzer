@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 venv/
 .venv/
-env/
+
 
 # App Data
 sessions.json
@@ -25,3 +25,5 @@ Thumbs.db
 /models/
 /assets/
 *.json
+
+.env

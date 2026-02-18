@@ -46,4 +46,4 @@ import os
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
-MODEL_CACHE_DIR = os.path.join(PROJECT_ROOT, "models")
+

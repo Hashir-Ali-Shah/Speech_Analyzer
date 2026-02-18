@@ -6,9 +6,12 @@ Supports multiple model sizes with on-demand loading.
 
 import tempfile
 import os
+from dotenv import load_dotenv
 from typing import Optional
 from faster_whisper import WhisperModel
-from backend.config import AVAILABLE_MODELS, DEFAULT_MODEL, WHISPER_DEVICE, WHISPER_COMPUTE_TYPE, MODEL_CACHE_DIR
+from backend.config import AVAILABLE_MODELS, DEFAULT_MODEL, WHISPER_DEVICE, WHISPER_COMPUTE_TYPE
+
+load_dotenv()
 
 
 class TranscriptionService:
@@ -32,7 +35,7 @@ class TranscriptionService:
 
         if model_size not in self._models:
             print(f"[TranscriptionService] Loading whisper model: {model_size}")
-            model_path = os.path.join(MODEL_CACHE_DIR, f"faster-whisper-{model_size}")
+            model_path = os.getenv(model_size.upper())
             self._models[model_size] = WhisperModel(
                 model_path,
                 device=WHISPER_DEVICE,
