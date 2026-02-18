@@ -1,15 +1,9 @@
-/* ═══════════════════════════════════════════════════════════════
-   SpeakBetter Local — Frontend Application
-   SPA with sidebar navigation, view switching, recording,
-   API communication, rendering, session history.
-   ═══════════════════════════════════════════════════════════════ */
-
 (() => {
   "use strict";
 
   // ─── Configuration ────────────────────────────────────────
   const API_BASE = "";
-  const MAX_RECORDING_SECONDS = 120;
+  const MAX_RECORDING_SECONDS = 300;
   const MIN_RECORDING_SECONDS = 30;
 
   const FILLER_WORDS = new Set(["uh", "um", "like", "basically", "actually"]);
@@ -313,6 +307,7 @@
     try {
       const formData = new FormData();
       formData.append("audio", state.audioBlob, "recording.webm");
+      formData.append("duration", state.recordingTime);
 
       setTimeout(() => {
         if (state.isAnalyzing) {

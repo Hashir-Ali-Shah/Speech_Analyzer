@@ -4,7 +4,7 @@ Single API server with /analyze, /topic, and /models endpoints.
 Serves the frontend as static files.
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +23,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS — allow local frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +32,6 @@ app.add_middleware(
 )
 
 
-# ─── API Endpoints ────────────────────────────────────────────────
 
 @app.get("/api/topic")
 def api_get_topic(category: str = None):
@@ -65,12 +63,12 @@ def api_get_models():
 async def api_analyze(
     audio: UploadFile = File(...),
     model: str = Query(default=DEFAULT_MODEL, description="Whisper model size"),
+    duration: float = Form(...),
 ):
     """
     Accept an audio file, transcribe it, and return metrics.
     Supports model selection via ?model=base|medium query param.
     """
-    # Validate model choice
     if model not in AVAILABLE_MODELS:
         raise HTTPException(
             status_code=400,
@@ -82,7 +80,6 @@ async def api_analyze(
         if not audio_bytes:
             raise HTTPException(status_code=400, detail="Empty audio file.")
 
-        # Step 1: Transcribe with selected model
         result = transcribe_audio(audio_bytes, model_size=model)
         transcript = result["transcript"]
         duration = result["duration_seconds"]
@@ -91,7 +88,6 @@ async def api_analyze(
         if not transcript.strip():
             raise HTTPException(status_code=422, detail="No speech detected in the audio.")
 
-        # Step 2: Compute metrics
         metrics = compute_all_metrics(transcript, duration, word_timestamps)
 
         return {
@@ -108,7 +104,6 @@ async def api_analyze(
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
-# ─── Session History (file-based) ─────────────────────────────────
 
 SESSION_FILE = os.path.join(PROJECT_ROOT, "sessions.json")
 
@@ -148,9 +143,7 @@ def api_clear_sessions():
         raise HTTPException(status_code=500, detail=f"Failed to clear sessions: {str(e)}")
 
 
-# ─── Static File Serving ──────────────────────────────────────────
 
-# Serve frontend static assets (CSS, JS)
 app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
 app.mount("/js", StaticFiles(directory=os.path.join(FRONTEND_DIR, "js")), name="js")
 

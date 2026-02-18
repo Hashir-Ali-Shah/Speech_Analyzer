@@ -17,7 +17,6 @@ from backend.config import (
 )
 
 
-# ─── Utility Helpers ──────────────────────────────────────────────
 
 def _tokenize(text: str) -> list[str]:
     """Split text into lowercase words, stripping punctuation."""
@@ -30,7 +29,6 @@ def _split_sentences(text: str) -> list[str]:
     return [s.strip() for s in sentences if s.strip()]
 
 
-# ─── Core Metrics ─────────────────────────────────────────────────
 
 def compute_core_metrics(transcript: str, duration_seconds: float) -> dict:
     """
@@ -40,10 +38,8 @@ def compute_core_metrics(transcript: str, duration_seconds: float) -> dict:
     words = _tokenize(transcript)
     word_count = len(words)
 
-    # Words per minute
     wpm = round((word_count / duration_seconds) * 60, 1) if duration_seconds > 0 else 0
 
-    # Sentence analysis
     sentences = _split_sentences(transcript)
     sentence_lengths = [len(_tokenize(s)) for s in sentences] if sentences else [0]
 
@@ -60,7 +56,6 @@ def compute_core_metrics(transcript: str, duration_seconds: float) -> dict:
     }
 
 
-# ─── Filler Analysis ─────────────────────────────────────────────
 
 def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = None) -> dict:
     """
@@ -71,23 +66,19 @@ def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = No
     words = _tokenize(transcript)
     word_count = len(words)
     filler_counts = Counter()
-    filler_positions = []  # For timeline
+    filler_positions = []
 
-    # 1. Single-word fillers
     for i, word in enumerate(words):
         if word in SINGLE_FILLERS:
             filler_counts[word] += 1
-            # Try to find timestamp position
             if word_timestamps and i < len(word_timestamps):
                 filler_positions.append({
                     "filler": word,
                     "position": word_timestamps[i].get("start", 0) if isinstance(word_timestamps[i], dict) else 0,
                 })
 
-    # 2. Multi-word fillers (e.g., "you know")
     for phrase in MULTI_FILLERS:
         phrase_lower = phrase.lower()
-        # Count occurrences in the raw text
         start = 0
         while True:
             idx = text_lower.find(phrase_lower, start)
@@ -96,7 +87,6 @@ def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = No
             filler_counts[phrase] += 1
             start = idx + len(phrase_lower)
 
-    # 3. Sentence-start fillers (e.g., "so" at start of sentence)
     sentences = _split_sentences(transcript)
     for sentence in sentences:
         sentence_words = _tokenize(sentence)
@@ -118,8 +108,6 @@ def compute_filler_metrics(transcript: str, word_timestamps: Optional[list] = No
     }
 
 
-# ─── Repetition Analysis ─────────────────────────────────────────
-
 def compute_repetition_metrics(transcript: str) -> dict:
     """
     Detect consecutive repeated words and repeated short phrases.
@@ -129,7 +117,6 @@ def compute_repetition_metrics(transcript: str) -> dict:
     repeated_words = []
     repeated_phrases = []
 
-    # 1. Consecutive repeated words (e.g., "the the", "I I I")
     i = 0
     while i < len(words) - 1:
         if words[i] == words[i + 1]:
@@ -141,21 +128,17 @@ def compute_repetition_metrics(transcript: str) -> dict:
             repeated_words.append({"word": repeated_word, "count": count})
         i += 1
 
-    # 2. Phrase repetitions (2-3 word phrases that appear more than once)
     phrase_counter = Counter()
     for length in range(MIN_PHRASE_LENGTH, MAX_PHRASE_LENGTH + 1):
         for i in range(len(words) - length + 1):
             phrase = " ".join(words[i:i + length])
             phrase_counter[phrase] += 1
 
-    # Filter to phrases that repeat and aren't just common word combos
-    # Exclude very common phrases that aren't actual repetition issues
     common_phrases = {"i think", "it is", "in the", "of the", "to the", "and the", "on the", "is a", "for the"}
     for phrase, count in phrase_counter.items():
         if count >= 2 and phrase not in common_phrases:
             repeated_phrases.append({"phrase": phrase, "count": count})
 
-    # Sort by count descending, take top 10
     repeated_phrases.sort(key=lambda x: x["count"], reverse=True)
     repeated_phrases = repeated_phrases[:10]
 
@@ -168,7 +151,6 @@ def compute_repetition_metrics(transcript: str) -> dict:
     }
 
 
-# ─── Pause Analysis ──────────────────────────────────────────────
 
 def compute_pause_metrics(word_timestamps: Optional[list] = None) -> dict:
     """
@@ -188,7 +170,7 @@ def compute_pause_metrics(word_timestamps: Optional[list] = None) -> dict:
         prev_end = word_timestamps[i - 1].get("end", 0)
         curr_start = word_timestamps[i].get("start", 0)
         gap = round(curr_start - prev_end, 3)
-        if gap > 0.1:  # Ignore micro-gaps < 100ms
+        if gap > 0.1:
             pauses.append({
                 "duration": gap,
                 "after_word": word_timestamps[i - 1].get("word", ""),
@@ -209,8 +191,6 @@ def compute_pause_metrics(word_timestamps: Optional[list] = None) -> dict:
         "pauses": significant_pauses,
     }
 
-
-# ─── Combined Metrics ────────────────────────────────────────────
 
 def compute_vocabulary_metrics(transcript: str) -> dict:
     """
@@ -260,7 +240,6 @@ def compute_pacing_metrics(
             "speaking_time_ratio": 0,
         }
 
-    # Total pause time (gaps > 0.25s between words)
     total_pause_time = 0.0
     for i in range(1, len(word_timestamps)):
         prev_end = word_timestamps[i - 1].get("end", 0)
