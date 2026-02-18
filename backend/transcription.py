@@ -18,7 +18,7 @@ class TranscriptionService:
     """Manages multiple whisper models with lazy loading."""
 
     _instance: Optional["TranscriptionService"] = None
-    _models: dict = {}  # model_size -> WhisperModel
+    _models: dict = {}
 
     def __new__(cls):
         if cls._instance is None:
@@ -108,7 +108,6 @@ class TranscriptionService:
                 os.unlink(tmp_path)
 
 
-# Module-level convenience function
 def transcribe_audio(audio_bytes: bytes, model_size: str = DEFAULT_MODEL) -> dict:
     """Transcribe audio bytes using the singleton TranscriptionService."""
     service = TranscriptionService()
